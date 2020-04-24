@@ -1,4 +1,4 @@
-# 🌟 QZAP bot
+# 💗 QZAP Bot
 
 Description TK.
 
