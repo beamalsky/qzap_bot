@@ -3,7 +3,7 @@ import sys
 import tweepy
 from pprint import pprint
 
-from qzap_bot import get_zine
+from qzap_bot import get_tweet
 
 LOCAL_DEVELOPMENT = True
 
@@ -22,11 +22,19 @@ auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
 api = tweepy.API(auth)
 
-zine = get_zine()
-e = str(zine)
+tweet_text = get_tweet()
 
-# try:
-#     api.update_status(e)
-#     print("New tweet posted: " + e)
-# except tweepy.error.TweepError:
-#     print("Duplicate found: " + e)
+media_ids = []
+for i in range(3):
+    filename = './media/zine_{}.jpg'.format(i)
+    print(filename)
+    res = api.media_upload(filename)
+    media_ids.append(res.media_id)
+
+api.update_status(status=tweet_text, media_ids=media_ids)
+
+# TODO:
+# - handle errors and missing PDFS
+# - get twitter creds working
+# - deploy
+# - write README

@@ -2,6 +2,9 @@ FROM python:3.7
 
 LABEL maintainer "Bea Malsky <beamalsky@gmail.com>"
 
+RUN apt-get update && \
+    apt-get install -y poppler-utils
+
 RUN mkdir /app
 WORKDIR /app
 

@@ -1,8 +1,11 @@
+import os
 import requests
 import lxml.html
+from pdf2image import convert_from_path
+from pdf2image.exceptions import PDFPageCountError
 
 
-def get_zine():
+def get_tweet():
     qzap_url = 'https://archive.qzap.org'
     a_id = 'splashRandomObject'
 
@@ -45,7 +48,7 @@ def get_zine():
         except IndexError:
             pass
 
-    x = get_images(page)
+    get_images(page)
 
     tweet = '{title}\n{created_by} {date}\n{place_created}\n{zine_url}'.format(
         title=title,
@@ -55,12 +58,12 @@ def get_zine():
         zine_url=zine_url
     )
 
-    print(tweet)
-
-    return ""
+    return tweet
 
 
 def get_images(page):
+    os.system('rm -rf media/*')
+
     pdf_ids = page.xpath(
         "//div[starts-with(@id,'BookReader')]"
     )[1].attrib['id'].split('_')
@@ -71,5 +74,22 @@ def get_images(page):
             object_id=pdf_ids[1],
             representation_id=pdf_ids[2]
         )
+        
+    response = requests.get(pdf_url)
+
+    pdf_file = './media/zine.pdf'
+
+    with open(pdf_file, 'wb') as f:
+        f.write(response.content)
+
+    pages = convert_from_path(pdf_file, 300)
+    for i in range(3):
+        try:
+            page = pages[i]
+            page.save('./media/zine_{}.jpg'.format(i), 'JPEG')
+        except PDFPageCountError:
+            print("Page missing! Zine might be < 3 pages")
+
+    os.system('rm media/zine.pdf')
 
     return pdf_url
