@@ -1,0 +1,14 @@
+version: '2.4'
+
+services:
+  app:
+    image: qzap_bot
+    container_name: qzap_bot
+    restart: always
+    build: .
+    stdin_open: true
+    tty: true
+    ports:
+      - 9000:9000
+    volumes:
+      - .:/app
