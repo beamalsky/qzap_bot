@@ -15,6 +15,7 @@ def get_tweet():
     random_zine = page.xpath("//a[@id='%s']" % a_id)[0].attrib['href']
     zine_url = qzap_url + random_zine
 
+
     # then, scrape that zine
     title = ''
     created_by = ''
@@ -39,8 +40,9 @@ def get_tweet():
                     "./div[@class='unit']/a"
                 )[1].text_content()
             if hed == 'Date':
-                date = unit.text_content().split('Date')[1].split(' ')[0]
-                date = '(' + date + ')'
+                date = unit.text_content().split('Date')[1].split(' ()')[0]
+                if date:
+                    date = '(' + date + ')'
             if hed == 'Place Created':
                 place_created = unit.text_content().split(
                     'Place Created'
@@ -58,15 +60,20 @@ def get_tweet():
         zine_url=zine_url
     )
 
+    print(tweet)
     return tweet
 
 
 def get_images(page):
     os.system('rm -rf media/*')
 
-    pdf_ids = page.xpath(
+    bookreader_id = page.xpath(
         "//div[starts-with(@id,'BookReader')]"
-    )[1].attrib['id'].split('_')
+    )[1].attrib['id']
+
+    print(bookreader_id)
+
+    pdf_ids = bookreader_id.split('_')
 
     pdf_url = 'https://archive.qzap.org/index.php/Detail/Object/' \
         'DownloadRepresentation/object_id/{object_id}/representation_id' \
@@ -74,7 +81,9 @@ def get_images(page):
             object_id=pdf_ids[1],
             representation_id=pdf_ids[2]
         )
-        
+
+    print(pdf_url)
+
     response = requests.get(pdf_url)
 
     pdf_file = './media/zine.pdf'
@@ -82,14 +91,17 @@ def get_images(page):
     with open(pdf_file, 'wb') as f:
         f.write(response.content)
 
-    pages = convert_from_path(pdf_file, 300)
+    try:
+        pages = convert_from_path(pdf_file, dpi=300, last_page=3)
+    except PDFPageCountError:
+        print("No zine found")
+        return
+
     for i in range(3):
         try:
             page = pages[i]
             page.save('./media/zine_{}.jpg'.format(i), 'JPEG')
-        except PDFPageCountError:
+        except IndexError:
             print("Page missing! Zine might be < 3 pages")
 
     os.system('rm media/zine.pdf')
-
-    return pdf_url
